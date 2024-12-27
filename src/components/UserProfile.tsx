@@ -14,36 +14,63 @@ interface Profile {
 const UserProfile = () => {
   const { user } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("username, age, level, lessons_completed")
-        .eq("id", user.id)
-        .single();
-
-      if (error) {
-        console.error("Error fetching profile:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load profile data",
-          variant: "destructive",
-        });
+      if (!user) {
+        setIsLoading(false);
         return;
       }
 
-      setProfile(data);
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("username, age, level, lessons_completed")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error("Error fetching profile:", error);
+          toast({
+            title: "Error",
+            description: "Failed to load profile data",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        setProfile(data);
+      } catch (error) {
+        console.error("Error in profile fetch:", error);
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchProfile();
   }, [user, toast]);
 
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-6">
+        <p className="text-gray-500">Loading profile...</p>
+      </div>
+    );
+  }
+
   if (!profile) {
-    return <div>Loading profile...</div>;
+    return (
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-6">
+        <p className="text-gray-500">No profile data available</p>
+      </div>
+    );
   }
 
   return (
