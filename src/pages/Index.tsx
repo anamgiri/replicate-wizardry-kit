@@ -1,6 +1,7 @@
 import UserProfile from "@/components/UserProfile";
 import LearningPath from "@/components/LearningPath";
 import LearningCard from "@/components/LearningCard";
+import PythonQuiz from "@/components/PythonQuiz";
 
 const Index = () => {
   const pythonIntroContent = `
@@ -256,6 +257,7 @@ animal_speak(cat)</code></pre>
                 level="Advanced"
                 progress={0}
               />
+              <PythonQuiz />
             </div>
           </div>
         </div>
