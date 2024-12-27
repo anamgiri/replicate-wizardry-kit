@@ -68,23 +68,38 @@ export const SignUpForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const { signUp } = useAuth();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     try {
       await signUp(email, password, username);
       toast({
         title: "Success",
         description: "Successfully signed up! Please check your email for verification.",
       });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to sign up. Please try again.",
-        variant: "destructive",
-      });
+    } catch (error: any) {
+      const errorMessage = error?.message || "Failed to sign up. Please try again.";
+      
+      // Handle rate limit error specifically
+      if (error?.status === 429) {
+        toast({
+          title: "Please wait",
+          description: "For security purposes, please wait a minute before trying again.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -102,6 +117,7 @@ export const SignUpForm = () => {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
+            disabled={isLoading}
           />
         </div>
         <div>
@@ -114,6 +130,7 @@ export const SignUpForm = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            disabled={isLoading}
           />
         </div>
         <div>
@@ -126,10 +143,11 @@ export const SignUpForm = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            disabled={isLoading}
           />
         </div>
-        <Button type="submit" className="w-full">
-          Sign Up
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? "Signing up..." : "Sign Up"}
         </Button>
       </form>
     </Card>
